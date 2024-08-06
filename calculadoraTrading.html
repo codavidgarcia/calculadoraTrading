@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Trading @codavidgarciaß</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        label {
+            margin-right: 5px;
+        }
+        input, select {
+            padding: 8px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            flex: 1;
+            min-width: 80px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .copy-button:hover {
+            background-color: #218838;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora de Trading Conversacional</h1>
+        <div class="form-group">
+            <label for="balance">Si tengo</label>
+            <input type="number" id="balance" step="0.01" placeholder="$" oninput="updateRiskPercentage()">
+            <label for="leverage">con un apalancamiento de</label>
+            <input type="number" id="leverage" step="0.01" placeholder="x">
+            <label for="profit">y quiero ganar</label>
+            <input type="number" id="profit" step="0.01" placeholder="$" oninput="updateRiskPercentage()">
+            <label for="riskPercentage">, es decir el</label>
+            <input type="number" id="riskPercentage" step="0.01" placeholder="%" oninput="updateProfit()">
+            <label for="riskType">de mi cuenta,</label>
+            <select id="riskType" onchange="toggleRiskInput()">
+                <option value="percentage">con un riesgo de distancia (%)</option>
+                <option value="price">con precios de entrada / SL / TP</option>
+            </select>
+        </div>
+        <div class="form-group" id="percentageGroup">
+            <label for="distance">de</label>
+            <input type="number" id="distance" step="0.01" placeholder="%">
+        </div>
+        <div class="form-group" id="priceGroup" style="display: none;">
+            <label for="entryPrice">, entrada a</label>
+            <input type="number" id="entryPrice" step="0.01" placeholder="$">
+            <label for="stopLoss">, SL a</label>
+            <input type="number" id="stopLoss" step="0.01" placeholder="$">
+            <label for="takeProfit">, TP a</label>
+            <input type="number" id="takeProfit" step="0.01" placeholder="$">
+        </div>
+        <button onclick="calculate()">Calcular</button>
+        <div class="result" id="result" style="display: none;">
+            <div class="result-item">
+                <span>Margen requerido: $<span id="marginRequired"></span></span>
+                <button class="copy-button" onclick="copyToClipboard('marginRequired')">Copiar</button>
+            </div>
+            <div class="result-item">
+                <span>Tamaño de la posición: $<span id="positionSize"></span></span>
+                <button class="copy-button" onclick="copyToClipboard('positionSize')">Copiar</button>
+            </div>
+            <div class="result-item">
+                <span>Cantidad de monedas: <span id="quantity"></span></span>
+                <button class="copy-button" onclick="copyToClipboard('quantity')">Copiar</button>
+            </div>
+            <div class="result-item">
+                <span>Tipo de operación: <span id="tradeType"></span></span>
+                <button class="copy-button" onclick="copyToClipboard('tradeType')">Copiar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateRiskPercentage() {
+            const balance = parseFloat(document.getElementById('balance').value);
+            const profit = parseFloat(document.getElementById('profit').value);
+            if (!isNaN(balance) && !isNaN(profit) && balance > 0) {
+                const riskPercentage = (profit / balance) * 100;
+                document.getElementById('riskPercentage').value = riskPercentage.toFixed(2);
+            }
+        }
+
+        function updateProfit() {
+            const balance = parseFloat(document.getElementById('balance').value);
+            const riskPercentage = parseFloat(document.getElementById('riskPercentage').value);
+            if (!isNaN(balance) && !isNaN(riskPercentage) && balance > 0) {
+                const profit = (riskPercentage / 100) * balance;
+                document.getElementById('profit').value = profit.toFixed(2);
+            }
+        }
+
+        function toggleRiskInput() {
+            const riskType = document.getElementById('riskType').value;
+            if (riskType === 'percentage') {
+                document.getElementById('percentageGroup').style.display = 'flex';
+                document.getElementById('priceGroup').style.display = 'none';
+            } else {
+                document.getElementById('percentageGroup').style.display = 'none';
+                document.getElementById('priceGroup').style.display = 'flex';
+            }
+        }
+
+        function calculate() {
+            const balance = parseFloat(document.getElementById('balance').value);
+            const leverage = parseFloat(document.getElementById('leverage').value);
+            const profit = parseFloat(document.getElementById('profit').value);
+            const riskPercentage = parseFloat(document.getElementById('riskPercentage').value) / 100;
+            const riskType = document.getElementById('riskType').value;
+            let distanceToSL, entryPrice, stopLoss, takeProfit, riskRewardRatio, positionSize, marginRequired, quantity, tradeType;
+
+            if (riskType === 'percentage') {
+                distanceToSL = parseFloat(document.getElementById('distance').value) / 100;
+                const amountRisked = balance * riskPercentage;
+                marginRequired = (amountRisked / distanceToSL) / leverage;
+                positionSize = marginRequired * leverage;
+
+                document.getElementById('marginRequired').textContent = marginRequired.toFixed(2);
+                document.getElementById('positionSize').textContent = positionSize.toFixed(2);
+                document.getElementById('quantity').textContent = '-';
+                document.getElementById('tradeType').textContent = '-';
+            } else {
+                entryPrice = parseFloat(document.getElementById('entryPrice').value);
+                stopLoss = parseFloat(document.getElementById('stopLoss').value);
+                takeProfit = parseFloat(document.getElementById('takeProfit').value);
+                distanceToSL = Math.abs((entryPrice - stopLoss) / entryPrice);
+                riskRewardRatio = Math.abs((takeProfit - entryPrice) / (entryPrice - stopLoss));
+                const amountRisked = balance * riskPercentage;
+                marginRequired = amountRisked / leverage;
+                positionSize = marginRequired * leverage;
+                quantity = positionSize / entryPrice;
+                tradeType = takeProfit < entryPrice ? 'short' : 'long';
+
+                document.getElementById('marginRequired').textContent = marginRequired.toFixed(2);
+                document.getElementById('positionSize').textContent = positionSize.toFixed(2);
+                document.getElementById('quantity').textContent = quantity < 1 ? quantity.toFixed(6) : quantity.toFixed(2);
+                document.getElementById('tradeType').textContent = tradeType;
+
+                if (riskRewardRatio < 2) {
+                    document.getElementById('result').innerHTML += '<br><span style="color: red;">Advertencia: La relación riesgo/recompensa es inferior a 2:1.</span>';
+                }
+            }
+
+            document.getElementById('result').style.display = 'block';
+        }
+
+        function copyToClipboard(elementId) {
+            const value = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(value).then(() => {
+                alert(`${elementId} copiado al portapapeles`);
+            }).catch(err => {
+                console.error("Error al copiar al portapapeles", err);
+            });
+        }
+    </script>
+</body>
+</html>
