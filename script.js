@@ -17,7 +17,7 @@ function updateProfit() {
 }
 
 function toggleRiskInput() {
-    const riskType = document.getElementById('riskType').value;
+    const riskType = document.querySelector('input[name="riskMode"]:checked').value;
     if (riskType === 'percentage') {
         document.getElementById('percentageGroup').style.display = 'flex';
         document.getElementById('priceGroup').style.display = 'none';
@@ -32,8 +32,8 @@ function calculate() {
     const leverage = parseFloat(document.getElementById('leverage').value);
     const profit = parseFloat(document.getElementById('profit').value);
     const riskPercentage = parseFloat(document.getElementById('riskPercentage').value) / 100;
-    const riskType = document.getElementById('riskType').value;
-    let distanceToSL, entryPrice, stopLoss, takeProfit, riskRewardRatio, positionSize, marginRequired, quantity, tradeType, lossAmount, profitAmount;
+    const riskType = document.querySelector('input[name="riskMode"]:checked').value;
+    let distanceToSL, entryPrice, stopLoss, takeProfit, positionSize, marginRequired, quantity, tradeType, lossAmount, profitAmount;
 
     if (riskType === 'percentage') {
         distanceToSL = parseFloat(document.getElementById('distance').value) / 100;
@@ -52,8 +52,10 @@ function calculate() {
         stopLoss = parseFloat(document.getElementById('stopLoss').value);
         takeProfit = parseFloat(document.getElementById('takeProfit').value);
 
+        const tradeTypeElement = document.getElementById('tradeType');
+
         // Paso 1: Determinar la ganancia por unidad de movimiento del precio
-        const movement = entryPrice - takeProfit;
+        const movement = Math.abs(takeProfit - entryPrice);
 
         // Paso 2: Calcular el tamaño del trade necesario para alcanzar la ganancia deseada
         const tradeSize = profit / movement;
@@ -66,18 +68,19 @@ function calculate() {
 
         positionSize = tradeValue;
         quantity = tradeSize;
-        tradeType = takeProfit < entryPrice ? 'short' : 'long';
+        tradeType = takeProfit > entryPrice ? 'long' : 'short';
 
         // Calcular la ganancia o pérdida en USD
-        const slMovement = entryPrice - stopLoss;
-        lossAmount = slMovement * tradeSize;
+        const slMovement = tradeType === 'long' ? entryPrice - stopLoss : stopLoss - entryPrice;
+        lossAmount = Math.abs(slMovement * tradeSize);
         profitAmount = movement * tradeSize;
 
         document.getElementById('marginRequired').textContent = marginRequired.toFixed(2);
         document.getElementById('positionSize').textContent = positionSize.toFixed(2);
         document.getElementById('quantity').textContent = quantity < 1 ? quantity.toFixed(8) : quantity.toFixed(2);
-        document.getElementById('tradeType').textContent = tradeType;
-        document.getElementById('lossAmount').textContent = lossAmount.toFixed(2);
+        tradeTypeElement.textContent = tradeType;
+        tradeTypeElement.className = tradeType === 'long' ? 'trade-long' : 'trade-short';
+        document.getElementById('lossAmount').textContent = (tradeType === 'long' ? '-' : '') + lossAmount.toFixed(2);
         document.getElementById('profitAmount').textContent = profitAmount.toFixed(2);
     }
 
@@ -86,9 +89,7 @@ function calculate() {
 
 function copyToClipboard(elementId) {
     const value = document.getElementById(elementId).textContent;
-    navigator.clipboard.writeText(value).then(() => {
-        alert(`${elementId} copiado al portapapeles`);
-    }).catch(err => {
+    navigator.clipboard.writeText(value).catch(err => {
         console.error("Error al copiar al portapapeles", err);
     });
 }

@@ -10,33 +10,48 @@
 </head>
 <body>
     <div class="container">
-        <h1>Calculadora de Trading Conversacional</h1>
+        <img src="LogoAventuraCripto.jpeg" alt="Logo Aventura Cripto" class="logo">
+        <h1>Calculadora de Trading - Aventura Cripto</h1>
         <div class="form-group">
-            <label for="balance">Si tengo</label>
-            <input type="number" id="balance" step="0.01" placeholder="$" oninput="updateRiskPercentage()">
-            <label for="leverage">con un apalancamiento de</label>
-            <input type="number" id="leverage" step="0.01" placeholder="x">
-            <label for="profit">y quiero ganar</label>
-            <input type="number" id="profit" step="0.01" placeholder="$" oninput="updateRiskPercentage()">
-            <label for="riskPercentage">, es decir el</label>
-            <input type="number" id="riskPercentage" step="0.01" placeholder="%" oninput="updateProfit()">
-            <label for="riskType">de mi cuenta,</label>
-            <select id="riskType" onchange="toggleRiskInput()">
-                <option value="percentage">con un riesgo de distancia (%)</option>
-                <option value="price">con precios de entrada / SL / TP</option>
-            </select>
+            <div class="label-group">
+                <label for="balance">Si tengo</label>
+                <input type="number" id="balance" step="0.01" placeholder="$" oninput="updateRiskPercentage()" data-unit="USDT">
+                <span>USDT</span>
+            </div>
+            <div class="label-group">
+                <label for="leverage">con un apalancamiento de</label>
+                <input type="number" id="leverage" step="0.01" placeholder="x" data-unit="x">
+                <span>x</span>
+            </div>
+            <div class="label-group">
+                <label for="profit">y quiero ganar</label>
+                <input type="number" id="profit" step="0.01" placeholder="$" oninput="updateRiskPercentage()" data-unit="USDT">
+                <span>USDT</span>
+            </div>
+            <div class="label-group">
+                <label for="riskPercentage">, es decir el</label>
+                <input type="number" id="riskPercentage" step="0.01" placeholder="%" oninput="updateProfit()" data-unit="%">
+                <span>%</span>
+            </div>
         </div>
-        <div class="form-group" id="percentageGroup">
+        <div class="mode-group">
+            <input type="radio" id="percentageMode" name="riskMode" value="percentage" checked onchange="toggleRiskInput()">
+            <label for="percentageMode">con un riesgo de distancia (%)</label>
+            <input type="radio" id="priceMode" name="riskMode" value="price" onchange="toggleRiskInput()">
+            <label for="priceMode">con precios de entrada / SL / TP</label>
+        </div>
+        <div class="form-group-inline" id="percentageGroup">
             <label for="distance">de</label>
-            <input type="number" id="distance" step="0.01" placeholder="%">
+            <input type="number" id="distance" step="0.01" placeholder="%" data-unit="%">
+            <span>%</span>
         </div>
-        <div class="form-group" id="priceGroup" style="display: none;">
-            <label for="entryPrice">, entrada a</label>
-            <input type="number" id="entryPrice" step="0.01" placeholder="$">
-            <label for="stopLoss">, SL a</label>
-            <input type="number" id="stopLoss" step="0.01" placeholder="$">
-            <label for="takeProfit">, TP a</label>
-            <input type="number" id="takeProfit" step="0.01" placeholder="$">
+        <div class="form-group-inline" id="priceGroup" style="display: none;">
+            <label for="entryPrice" class="input-entry">, entrada a</label>
+            <input type="number" id="entryPrice" step="0.01" placeholder="$" class="input-entry">
+            <label for="stopLoss" class="input-sl">, SL a</label>
+            <input type="number" id="stopLoss" step="0.01" placeholder="$" class="input-sl">
+            <label for="takeProfit" class="input-tp">, TP a</label>
+            <input type="number" id="takeProfit" step="0.01" placeholder="$" class="input-tp">
         </div>
         <button onclick="calculate()">Calcular</button>
         <div class="result" id="result" style="display: none;">
@@ -53,7 +68,7 @@
                 <button class="copy-button" onclick="copyToClipboard('quantity')">Copiar</button>
             </div>
             <div class="result-item">
-                <span>Tipo de operación: <span id="tradeType"></span></span>
+                <span>Tipo de operación: <span id="tradeType" class="trade-long"></span></span>
                 <button class="copy-button" onclick="copyToClipboard('tradeType')">Copiar</button>
             </div>
             <div class="result-item">
