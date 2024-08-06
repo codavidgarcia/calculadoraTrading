@@ -1,14 +1,10 @@
-import { next } from '@vercel/edge';
-
-export default function middleware(req) {
-  return next({
-    headers: {
-      'Referrer-Policy': 'origin-when-cross-origin',
-      'X-Frame-Options': 'DENY',
-      'X-Content-Type-Options': 'nosniff',
-      'X-DNS-Prefetch-Control': 'on',
-      'Strict-Transport-Security':
-        'max-age=31536000; includeSubDomains; preload',
-    },
-  });
-}
+// middleware.js
+export default function middleware(req, res) {
+    res.setHeader('referrer-policy', 'origin-when-cross-origin');
+    res.setHeader('strict-transport-security', 'max-age=31536000; includeSubDomains; preload');
+    res.setHeader('x-content-type-options', 'nosniff');
+    res.setHeader('x-dns-prefetch-control', 'on');
+    res.setHeader('x-frame-options', 'DENY');
+    res.next();
+  }
+  
